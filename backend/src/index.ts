@@ -11,6 +11,8 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 3000
 
+app.set('trust proxy', 1) // Trust Railway's proxy layer
+
 // Security middleware — order matters here
 app.use(helmet())
 app.use(cors({
