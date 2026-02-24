@@ -31,8 +31,4 @@ Harbor is a safe space for users to start conversations, seek support, and conne
 ## License
 MIT
 
-## Contributing
-Pull requests and issues are welcome. Please follow code style and security best practices.
 
----
-For questions or support, contact the maintainers or open an issue.
