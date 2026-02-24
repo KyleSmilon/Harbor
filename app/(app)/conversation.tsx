@@ -34,6 +34,7 @@ export default function Conversation() {
   const [careProfile, setCareProfile] = useState<CareProfile | null>(null)
   const flatListRef = useRef<FlatList>(null)
   const router = useRouter()
+  const [sendError, setSendError] = useState('')
 
   useEffect(() => {
     initialise()
@@ -189,9 +190,14 @@ export default function Conversation() {
         }),
       })
 
+      // Check content type before parsing — Railway timeouts return HTML not JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server temporarily unavailable. Please try again.')
+      }
+
       const data = await response.json()
       if (!data.message) throw new Error('No response from companion')
-      
 
       // Save assistant response to database
       const { data: assistantMessage } = await supabase
@@ -216,8 +222,11 @@ export default function Conversation() {
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', conversationId)
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Send error:', err)
+      // Show friendly message in UI rather than silent failure
+      setSendError('Harbor had trouble responding. Please try sending again.')
+      setTimeout(() => setSendError(''), 4000) // auto-clear after 4 seconds
     } finally {
       setSending(false)
     }
@@ -281,6 +290,12 @@ export default function Conversation() {
         </View>
       )}
 
+      {/* Transient error message — shows briefly then disappears */}
+        {sendError ? (
+        <View style={styles.sendErrorBox}>
+            <Text style={styles.sendErrorText}>{sendError}</Text>
+        </View>
+      ) : null}
       {/* Input bar */}
       <View style={styles.inputBar}>
         <TextInput
@@ -328,6 +343,11 @@ const styles = StyleSheet.create({
   userText: { color: '#fff', fontSize: 15, lineHeight: 22 },
   typingIndicator: { paddingHorizontal: 20, paddingVertical: 8 },
   typingText: { color: '#52796F', fontSize: 13, fontStyle: 'italic' },
+  sendErrorBox: {
+      backgroundColor: '#FEE2E2', paddingHorizontal: 16, paddingVertical: 8,
+      borderTopWidth: 1, borderTopColor: '#FECACA',
+  },
+  sendErrorText: { color: '#DC2626', fontSize: 13, textAlign: 'center' },
   inputBar: {
     flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12,
     paddingVertical: 10, backgroundColor: '#fff',

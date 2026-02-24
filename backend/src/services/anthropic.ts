@@ -38,9 +38,11 @@ You exist because caregivers are some of the most overlooked people in the healt
 }
 
 // Keep last 20 messages to manage token costs while preserving context
+// Keep last 10 messages to stay well within token and timeout limits.
+// This balances context quality against request size and latency.
 function trimMessageHistory(messages: Message[]): Message[] {
-  if (messages.length <= 20) return messages
-  return messages.slice(messages.length - 20)
+  if (messages.length <= 10) return messages
+  return messages.slice(messages.length - 10)
 }
 
 export async function generateCompanionResponse(
