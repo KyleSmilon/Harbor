@@ -49,6 +49,10 @@ export async function generateCompanionResponse(
 ): Promise<string> {
   const trimmedMessages = trimMessageHistory(messages)
 
+  // Log what we're sending so Railway logs show the request shape
+  console.log('Calling Anthropic with', trimmedMessages.length, 'messages')
+  console.log('API key present:', !!process.env.ANTHROPIC_API_KEY)
+
   const response = await client.messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 1024,
