@@ -15,9 +15,12 @@ export interface ChatRequest {
   messages: Message[]
   careProfile: CareProfile
   userId: string
+  conversationId: string  // needed so backend can update the summary
+  existingSummary?: string | null
 }
 
 export interface ChatResponse {
   message: string
   flagged: boolean
+  updatedSummary?: string | null
 }

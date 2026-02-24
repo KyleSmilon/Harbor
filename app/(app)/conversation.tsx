@@ -35,6 +35,8 @@ export default function Conversation() {
   const flatListRef = useRef<FlatList>(null)
   const router = useRouter()
   const [sendError, setSendError] = useState('')
+  const [conversationSummary, setConversationSummary] = useState<string | null>(null)
+  
 
   useEffect(() => {
     initialise()
@@ -63,6 +65,14 @@ export default function Conversation() {
         })
       }
 
+      // Load conversation summary if it exists
+      const { data: convoData } = await supabase
+        .from('conversations')
+        .select('summary')
+        .eq('id', conversationId)
+        .single()
+
+      if (convoData?.summary) setConversationSummary(convoData.summary)
       // Load existing messages for this conversation
       const { data: existingMessages } = await supabase
         .from('messages')
@@ -183,11 +193,12 @@ export default function Conversation() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
-          messages: messageHistory,
-          careProfile,
-          userId: user.id,
-        }),
+      body: JSON.stringify({
+        messages: messageHistory,
+        careProfile,
+        userId: user.id,
+        existingSummary: conversationSummary,
+      }),
       })
 
       // Check content type before parsing — Railway timeouts return HTML not JSON
@@ -198,6 +209,15 @@ export default function Conversation() {
 
       const data = await response.json()
       if (!data.message) throw new Error('No response from companion')
+
+      // Persist updated summary if the backend generated one
+      if (data.updatedSummary && data.updatedSummary !== conversationSummary) {
+        setConversationSummary(data.updatedSummary)
+        await supabase
+          .from('conversations')
+          .update({ summary: data.updatedSummary })
+          .eq('id', conversationId)
+      }
 
       // Save assistant response to database
       const { data: assistantMessage } = await supabase

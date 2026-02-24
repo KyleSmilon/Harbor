@@ -152,3 +152,11 @@ create trigger profiles_updated_at
 create trigger care_profiles_updated_at
   before update on care_profiles
   for each row execute procedure update_updated_at();
+
+  -- Stores a rolling summary of conversation history older than the context window.
+-- Updated automatically as conversations grow beyond the message limit.
+alter table conversations 
+  add column summary text default null;
+
+comment on column conversations.summary is 
+  'Rolling AI-generated summary of messages outside the active context window.';
