@@ -116,6 +116,7 @@ export default function Conversation() {
             supportSituation: profile.support_situation,
           },
           userId,
+          conversationId,
         }),
       })
 
@@ -197,6 +198,7 @@ export default function Conversation() {
         messages: messageHistory,
         careProfile,
         userId: user.id,
+        conversationId,
         existingSummary: conversationSummary,
       }),
       })
